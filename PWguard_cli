@@ -1,0 +1,147 @@
+import hashlib
+import getpass
+import random
+import string
+
+
+def hash_password(password):
+    """Mengubah password menjadi hash SHA256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def check_password_strength(password):
+    """Menilai kekuatan password berdasarkan panjang dan variasi karakter"""
+    if not password:
+        return "Empty"
+
+    length = len(password)
+    has_upper = any(c.isupper() for c in password)
+    has_lower = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    has_symbol = any(not c.isalnum() for c in password)
+
+    score = 0
+    score += 1 if length >= 8 else 0
+    score += 1 if length >= 12 else 0
+    score += 1 if has_upper else 0
+    score += 1 if has_lower else 0
+    score += 1 if has_digit else 0
+    score += 1 if has_symbol else 0
+
+    if score >= 5:
+        return "Very Strong"
+    elif score >= 4:
+        return "Strong"
+    elif score >= 3:
+        return "Moderate"
+    else:
+        return "Weak"
+
+
+def generate_random_password(length=12):
+    """Membuat password acak yang mudah dibaca"""
+    if length < 8:
+        length = 8
+
+    easy_uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+    easy_lowers = "abcdefghjkmnpqrstuvwxyz"
+    easy_digits = "23456789"
+    easy_symbols = "!@$%&*+-=?"
+
+    password_parts = [
+        random.choice(easy_uppers),
+        random.choice(easy_uppers),
+        random.choice(easy_lowers),
+        random.choice(easy_lowers),
+        random.choice(easy_lowers),
+        random.choice(easy_digits),
+        random.choice(easy_digits),
+        random.choice(easy_symbols),
+    ]
+
+    if length > 8:
+        remaining_length = length - 8
+        all_easy_chars = easy_uppers + easy_lowers + easy_digits + easy_symbols
+        for _ in range(remaining_length):
+            password_parts.append(random.choice(all_easy_chars))
+
+    random.shuffle(password_parts)
+    password = ''.join(password_parts).replace('#', '')
+
+    return password[:length]
+
+
+def main():
+    while True:
+        print("\n" + "=" * 40)
+        print(" pwguard_cli ")
+        print("=" * 40)
+        print("1. Enter your own password")
+        print("2. Generate random password")
+        print("3. Exit program")
+
+        choice = input("\nChoose option (1/2/3): ").strip()
+
+        if choice == "1":
+            password = getpass.getpass("Enter password: ")
+            if not password:
+                print("Error: Password cannot be empty!")
+                continue
+
+            hashed = hash_password(password)
+            strength = check_password_strength(password)
+
+            print("\n=== Analysis Results ===")
+            print(f"Password Length: {len(password)} characters")
+            print(f"Hash (SHA256): {hashed}")
+            print(f"Password Strength: {strength}")
+
+        elif choice == "2":
+            try:
+                length_input = input("Password length (default 12): ").strip()
+                length = int(length_input) if length_input else 12
+                if length < 8:
+                    print("Minimum length is 8 characters. Setting to 8.")
+                    length = 8
+                elif length > 50:
+                    print("Maximum length is 50 characters. Setting to 50.")
+                    length = 50
+            except ValueError:
+                length = 12
+                print("Invalid input, using default length 12")
+
+            password = generate_random_password(length)
+            print("======================================")
+            print(f"Your random password: {password}")
+
+            hashed = hash_password(password)
+            strength = check_password_strength(password)
+
+            print("\n Analysis Results")
+            print("======================================")
+            print(f"Password Length: {len(password)} characters")
+            print(f"Hash (SHA256): {hashed}")
+            print(f"Password Strength: {strength}")
+
+        elif choice == "3":
+            print("Thank you for using pwguard_cli. Goodbye! :3")
+            print("======================================")
+            break
+
+        else:
+            print("Invalid choice! Please choose 1, 2, or 3.")
+            continue
+
+        while True:
+            continue_choice = input("\nDo you want to run again? (y/n): ").strip().lower()
+            if continue_choice in ['y', 'yes', 'ya']:
+                break
+            elif continue_choice in ['n', 'no', 'tidak']:
+                print("Thank you for using pwguard_cli. Goodbye! :3")
+                return
+            else:
+                print("Please enter 'y' for yes or 'n' for no.")
+
+
+if __name__ == "__main__":
+    main()
